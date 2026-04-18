@@ -1,12 +1,13 @@
 package com.example.cartservice.service;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import com.example.cartservice.entity.Cart;
+import com.example.cartservice.entity.CartItem;
 
-@SpringBootApplication
-public class CartService {
+public interface CartService {
 
-    public static void main(String[] args) {
-        SpringApplication.run(CartService.class, args);
-    }
+    Cart createCart(Cart cart);
+
+    Cart getCartById(Integer id);
+
+    CartItem addCartItem(CartItem cartItem);
 }
