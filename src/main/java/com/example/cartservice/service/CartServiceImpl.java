@@ -6,6 +6,8 @@ import com.example.cartservice.repository.CartItemRepository;
 import com.example.cartservice.repository.CartRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class CartServiceImpl implements CartService {
 
@@ -26,6 +28,11 @@ public class CartServiceImpl implements CartService {
     public Cart getCartById(Integer id) {
         return cartRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cart not found with id: " + id));
+    }
+
+    @Override
+    public List<Cart> getAllCarts() {
+        return cartRepository.findAll();
     }
 
     @Override
