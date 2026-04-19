@@ -4,6 +4,9 @@ import com.example.cartservice.entity.Cart;
 import com.example.cartservice.entity.CartItem;
 import com.example.cartservice.repository.CartItemRepository;
 import com.example.cartservice.repository.CartRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -38,5 +41,31 @@ public class CartServiceImpl implements CartService {
     @Override
     public CartItem addCartItem(CartItem cartItem) {
         return cartItemRepository.save(cartItem);
+    }
+
+    @Override
+    public Page<Cart> getCartsPaged(int page, int size, String sortBy) {
+        return cartRepository.findAll(PageRequest.of(page, size, Sort.by(sortBy)));
+    }
+
+    @Override
+    public Page<CartItem> getCartItemsPaged(int page, int size, String sortBy) {
+        return cartItemRepository.findAll(PageRequest.of(page, size, Sort.by(sortBy)));
+    }
+
+    @Override
+    public List<CartItem> getCartItemsAboveQuantity(Integer quantity) {
+        return cartItemRepository.findAll()
+                .stream()
+                .filter(item -> item.getQuantity() > quantity)
+                .toList();
+    }
+
+    @Override
+    public List<Integer> getAllProductIdsFromCartItems() {
+        return cartItemRepository.findAll()
+                .stream()
+                .map(CartItem::getProductId)
+                .toList();
     }
 }

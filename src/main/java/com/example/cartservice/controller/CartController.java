@@ -3,6 +3,7 @@ package com.example.cartservice.controller;
 import com.example.cartservice.entity.Cart;
 import com.example.cartservice.entity.CartItem;
 import com.example.cartservice.service.CartService;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,5 +36,33 @@ public class CartController {
     @PostMapping("/items")
     public CartItem addCartItem(@RequestBody CartItem cartItem) {
         return cartService.addCartItem(cartItem);
+    }
+
+    @GetMapping("/paged")
+    public Page<Cart> getCartsPaged(
+            @RequestParam int page,
+            @RequestParam int size,
+            @RequestParam String sortBy
+    ) {
+        return cartService.getCartsPaged(page, size, sortBy);
+    }
+
+    @GetMapping("/items/paged")
+    public Page<CartItem> getCartItemsPaged(
+            @RequestParam int page,
+            @RequestParam int size,
+            @RequestParam String sortBy
+    ) {
+        return cartService.getCartItemsPaged(page, size, sortBy);
+    }
+
+    @GetMapping("/items/filter/quantity")
+    public List<CartItem> getCartItemsAboveQuantity(@RequestParam Integer quantity) {
+        return cartService.getCartItemsAboveQuantity(quantity);
+    }
+
+    @GetMapping("/items/product-ids")
+    public List<Integer> getAllProductIdsFromCartItems() {
+        return cartService.getAllProductIdsFromCartItems();
     }
 }
