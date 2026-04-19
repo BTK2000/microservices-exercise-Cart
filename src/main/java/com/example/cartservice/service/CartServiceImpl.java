@@ -1,5 +1,6 @@
 package com.example.cartservice.service;
 
+import com.example.cartservice.dto.ProductResponse;
 import com.example.cartservice.entity.Cart;
 import com.example.cartservice.entity.CartItem;
 import com.example.cartservice.repository.CartItemRepository;
@@ -8,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
 
@@ -16,10 +18,14 @@ public class CartServiceImpl implements CartService {
 
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
+    private final WebClient webClient;
 
-    public CartServiceImpl(CartRepository cartRepository, CartItemRepository cartItemRepository) {
+    public CartServiceImpl(CartRepository cartRepository,
+                           CartItemRepository cartItemRepository,
+                           WebClient webClient) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
+        this.webClient = webClient;
     }
 
     @Override
@@ -42,6 +48,26 @@ public class CartServiceImpl implements CartService {
     public CartItem addCartItem(CartItem cartItem) {
         return cartItemRepository.save(cartItem);
     }
+
+    @Override
+    public CartItem addCartItemWithValidation(CartItem cartItem) {
+        ProductResponse product = webClient.get()
+                .uri("/products/{id}", cartItem.getProductId())
+                .retrieve()
+                .bodyToMono(ProductResponse.class)
+                .block();
+
+        if (product == null) {
+            throw new RuntimeException("Product not found with id: " + cartItem.getProductId());
+        }
+
+        if (product.getStock() < cartItem.getQuantity()) {
+            throw new RuntimeException("Insufficient stock for product id: " + cartItem.getProductId());
+        }
+
+        return cartItemRepository.save(cartItem);
+    }
+
 
     @Override
     public Page<Cart> getCartsPaged(int page, int size, String sortBy) {

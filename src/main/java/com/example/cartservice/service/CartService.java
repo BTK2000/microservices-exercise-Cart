@@ -16,6 +16,8 @@ public interface CartService {
 
     CartItem addCartItem(CartItem cartItem);
 
+    CartItem addCartItemWithValidation(CartItem cartItem);
+
     Page<Cart> getCartsPaged(int page, int size, String sortBy);
 
     Page<CartItem> getCartItemsPaged(int page, int size, String sortBy);
@@ -25,4 +27,6 @@ public interface CartService {
     List<Integer> getAllProductIdsFromCartItems();
 
     List<CartItem> getCartItemsAboveQuantityNative(Integer quantity);
+
+
 }

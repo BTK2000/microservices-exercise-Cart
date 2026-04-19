@@ -14,6 +14,8 @@ public class CartController {
 
     private final CartService cartService;
 
+
+
     public CartController(CartService cartService) {
         this.cartService = cartService;
     }
@@ -36,6 +38,11 @@ public class CartController {
     @PostMapping("/items")
     public CartItem addCartItem(@RequestBody CartItem cartItem) {
         return cartService.addCartItem(cartItem);
+    }
+
+    @PostMapping("/items/validate")
+    public CartItem addCartItemWithValidation(@RequestBody CartItem cartItem) {
+        return cartService.addCartItemWithValidation(cartItem);
     }
 
     @GetMapping("/paged")
