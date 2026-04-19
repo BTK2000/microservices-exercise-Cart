@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/carts")
@@ -43,6 +44,11 @@ public class CartController {
     @PostMapping("/items/validate")
     public CartItem addCartItemWithValidation(@RequestBody CartItem cartItem) {
         return cartService.addCartItemWithValidation(cartItem);
+    }
+
+    @PostMapping("/items/validate/async")
+    public CompletableFuture<CartItem> addCartItemAsyncWithValidation(@RequestBody CartItem cartItem) {
+        return cartService.addCartItemAsyncWithValidation(cartItem);
     }
 
     @GetMapping("/paged")

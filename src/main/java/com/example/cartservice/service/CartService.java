@@ -5,6 +5,7 @@ import com.example.cartservice.entity.CartItem;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public interface CartService {
 
@@ -17,6 +18,8 @@ public interface CartService {
     CartItem addCartItem(CartItem cartItem);
 
     CartItem addCartItemWithValidation(CartItem cartItem);
+
+    CompletableFuture<CartItem> addCartItemAsyncWithValidation(CartItem cartItem);
 
     Page<Cart> getCartsPaged(int page, int size, String sortBy);
 

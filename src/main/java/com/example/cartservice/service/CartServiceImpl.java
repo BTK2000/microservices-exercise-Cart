@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 @Service
 public class CartServiceImpl implements CartService {
@@ -22,15 +24,18 @@ public class CartServiceImpl implements CartService {
     private final CartItemRepository cartItemRepository;
     private final WebClient webClient;
     private final CartKafkaProducer cartKafkaProducer;
+    private final Executor taskExecutor;
 
     public CartServiceImpl(CartRepository cartRepository,
                            CartItemRepository cartItemRepository,
                            WebClient webClient,
-                           CartKafkaProducer cartKafkaProducer) {
+                           CartKafkaProducer cartKafkaProducer,
+                           Executor taskExecutor) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.webClient = webClient;
         this.cartKafkaProducer = cartKafkaProducer;
+        this.taskExecutor = taskExecutor;
     }
 
     @Override
@@ -81,6 +86,46 @@ public class CartServiceImpl implements CartService {
         cartKafkaProducer.sendCartEvent(cartEvent);
 
         return savedItem;
+    }
+
+    @Override
+    public CompletableFuture<CartItem> addCartItemAsyncWithValidation(CartItem cartItem) {
+
+        CompletableFuture<ProductResponse> productFuture = webClient.get()
+                .uri("/products/{id}", cartItem.getProductId())
+                .retrieve()
+                .bodyToMono(ProductResponse.class)
+                .toFuture();
+
+        CompletableFuture<Cart> cartFuture = CompletableFuture.supplyAsync(() ->
+                        cartRepository.findById(cartItem.getCartId())
+                                .orElseThrow(() -> new RuntimeException("Cart not found with id: " + cartItem.getCartId())),
+                taskExecutor
+        );
+
+        return productFuture.thenCombine(cartFuture, (product, cart) -> {
+            if (product == null) {
+                throw new RuntimeException("Product not found with id: " + cartItem.getProductId());
+            }
+
+            if (product.getStock() < cartItem.getQuantity()) {
+                throw new RuntimeException("Insufficient stock for product id: " + cartItem.getProductId());
+            }
+
+            return cartItem;
+        }).thenApplyAsync(validatedCartItem -> {
+            CartItem savedItem = cartItemRepository.save(validatedCartItem);
+
+            CartEvent cartEvent = new CartEvent(
+                    savedItem.getCartId(),
+                    savedItem.getProductId(),
+                    savedItem.getQuantity()
+            );
+
+            cartKafkaProducer.sendCartEvent(cartEvent);
+
+            return savedItem;
+        }, taskExecutor);
     }
 
 
