@@ -68,4 +68,9 @@ public class CartServiceImpl implements CartService {
                 .map(CartItem::getProductId)
                 .toList();
     }
+
+    @Override
+    public List<CartItem> getCartItemsAboveQuantityNative(Integer quantity) {
+        return cartItemRepository.findCartItemsAboveQuantityNative(quantity);
+    }
 }

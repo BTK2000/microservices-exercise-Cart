@@ -23,4 +23,6 @@ public interface CartService {
     List<CartItem> getCartItemsAboveQuantity(Integer quantity);
 
     List<Integer> getAllProductIdsFromCartItems();
+
+    List<CartItem> getCartItemsAboveQuantityNative(Integer quantity);
 }

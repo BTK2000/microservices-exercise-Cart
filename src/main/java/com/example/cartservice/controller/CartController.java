@@ -65,4 +65,9 @@ public class CartController {
     public List<Integer> getAllProductIdsFromCartItems() {
         return cartService.getAllProductIdsFromCartItems();
     }
+
+    @GetMapping("/items/native/quantity")
+    public List<CartItem> getCartItemsAboveQuantityNative(@RequestParam Integer quantity) {
+        return cartService.getCartItemsAboveQuantityNative(quantity);
+    }
 }
