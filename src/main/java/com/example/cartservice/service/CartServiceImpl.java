@@ -1,8 +1,10 @@
 package com.example.cartservice.service;
 
+import com.example.cartservice.dto.CartEvent;
 import com.example.cartservice.dto.ProductResponse;
 import com.example.cartservice.entity.Cart;
 import com.example.cartservice.entity.CartItem;
+import com.example.cartservice.kafka.CartKafkaProducer;
 import com.example.cartservice.repository.CartItemRepository;
 import com.example.cartservice.repository.CartRepository;
 import org.springframework.data.domain.Page;
@@ -19,13 +21,16 @@ public class CartServiceImpl implements CartService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final WebClient webClient;
+    private final CartKafkaProducer cartKafkaProducer;
 
     public CartServiceImpl(CartRepository cartRepository,
                            CartItemRepository cartItemRepository,
-                           WebClient webClient) {
+                           WebClient webClient,
+                           CartKafkaProducer cartKafkaProducer) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.webClient = webClient;
+        this.cartKafkaProducer = cartKafkaProducer;
     }
 
     @Override
@@ -65,7 +70,17 @@ public class CartServiceImpl implements CartService {
             throw new RuntimeException("Insufficient stock for product id: " + cartItem.getProductId());
         }
 
-        return cartItemRepository.save(cartItem);
+        CartItem savedItem = cartItemRepository.save(cartItem);
+
+        CartEvent cartEvent = new CartEvent(
+                savedItem.getCartId(),
+                savedItem.getProductId(),
+                savedItem.getQuantity()
+        );
+
+        cartKafkaProducer.sendCartEvent(cartEvent);
+
+        return savedItem;
     }
 
 
